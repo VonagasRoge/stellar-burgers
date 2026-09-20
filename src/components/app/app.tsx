@@ -1,69 +1,187 @@
-import { AppHeader } from '@components';
-import { ConstructorPage } from '@pages';
-import { Preloader } from '@ui';
-import { Routes, Route } from 'react-router-dom';
+import { AppHeader, IngredientDetails, Modal, OrderInfo } from '@components';
+import { ProtectedRoute } from '@hocs';
+import {
+  ConstructorPage,
+  Feed,
+  ForgotPassword,
+  Login,
+  NotFound404,
+  Profile,
+  ProfileOrders,
+  Register,
+  ResetPassword,
+} from '@pages';
+import { fetchIngredients } from '@slices/ingredientsSlice';
+import { checkUserAuth } from '@slices/userSlice';
+import { clsx } from 'clsx';
+import { useCallback, useEffect, type ReactNode } from 'react';
+import {
+  type Location,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 
-import type { AppContentProps } from './type';
-import type { TIngredient } from '@utils-types';
+import { useDispatch } from '@services/store';
+
+type LocationState = {
+  background?: Location;
+};
 
 import '../../index.css';
 
 import styles from './app.module.css';
 
 const App = (): React.JSX.Element => {
-  const ingredients: TIngredient[] = [];
-  const isIngredientsLoading = false;
-  const ingredientsError = null;
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    void dispatch(fetchIngredients());
+    void dispatch(checkUserAuth());
+  }, [dispatch]);
 
   return (
     <div className={styles.app}>
       <AppHeader />
-      <AppContent
-        ingredients={ingredients}
-        isLoading={isIngredientsLoading}
-        error={ingredientsError}
-      />
+      <AppRoutes />
     </div>
   );
 };
 
 export default App;
 
-/* Маршруты показываются только когда ингредиенты загружены: без них не
-   отрисовать ни конструктор, ни состав заказа. */
-const AppContent = ({
-  ingredients,
-  isLoading,
-  error,
-}: AppContentProps): React.JSX.Element => {
-  if (isLoading) {
-    return <Preloader />;
-  }
+const AppRoutes = (): React.JSX.Element => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const background = (location.state as LocationState | null)?.background;
 
-  if (error) {
-    return (
-      <p className={`${styles.message} text text_type_main-medium`}>
-        Не удалось загрузить ингредиенты
-        {error.message ? `: ${error.message}` : '.'}
-      </p>
-    );
-  }
+  const handleModalClose = useCallback((): void => {
+    void navigate(-1);
+  }, [navigate]);
 
-  if (!ingredients.length) {
-    return (
-      <p className={`${styles.message} text text_type_main-medium`}>Нет ингредиентов</p>
-    );
-  }
-
-  return <RouteComponent />;
-};
-
-const RouteComponent = (): React.JSX.Element => {
   return (
     <>
-      <Routes>
+      <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/orders"
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/feed/:number" element={<OrderInfo />} />
+        <Route
+          path="/ingredients/:id"
+          element={
+            <div className={styles.detailPageWrap}>
+              <h3 className={clsx(styles.detailHeader, 'text', 'text_type_main-large')}>
+                Детали ингредиента
+              </h3>
+              <IngredientDetails />
+            </div>
+          }
+        />
+        <Route
+          path="/profile/orders/:number"
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound404 />} />
       </Routes>
+
+      {background && (
+        <Routes>
+          <Route
+            path="/feed/:number"
+            element={
+              <OrderModal onClose={handleModalClose}>
+                <OrderInfo />
+              </OrderModal>
+            }
+          />
+          <Route
+            path="/ingredients/:id"
+            element={
+              <Modal title="Детали ингредиента" onClose={handleModalClose}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <ProtectedRoute>
+                <OrderModal onClose={handleModalClose}>
+                  <OrderInfo />
+                </OrderModal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </>
+  );
+};
+
+type OrderModalProps = {
+  onClose: () => void;
+  children: ReactNode;
+};
+
+const OrderModal = ({ onClose, children }: OrderModalProps): React.JSX.Element => {
+  const { number } = useParams();
+
+  return (
+    <Modal title={`#${String(number).padStart(6, '0')}`} onClose={onClose}>
+      {children}
+    </Modal>
   );
 };

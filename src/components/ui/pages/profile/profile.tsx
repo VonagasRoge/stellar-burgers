@@ -1,8 +1,10 @@
 import { ProfileMenu } from '@components';
 import { Button, Input } from '@krgaa/react-developer-burger-ui-components';
+import { clsx } from 'clsx';
 
 import type { ProfileUIProps } from './type';
 
+import commonStyles from '../common.module.css';
 import styles from './profile.module.css';
 
 export const ProfileUI = ({
@@ -13,11 +15,14 @@ export const ProfileUI = ({
   handleCancel,
   handleInputChange,
 }: ProfileUIProps): React.JSX.Element => (
-  <main className={styles.container}>
-    <div className={`mt-30 mr-15 ${styles.menu}`}>
+  <main className={commonStyles.container}>
+    <div className={clsx('mt-30', 'mr-15', styles.menu)}>
       <ProfileMenu />
     </div>
-    <form className={`mt-30 ${styles.form}`} onSubmit={handleSubmit}>
+    <form
+      className={clsx('mt-30', commonStyles.form, styles.form)}
+      onSubmit={handleSubmit}
+    >
       <>
         <div className="pb-6">
           <Input
@@ -74,7 +79,14 @@ export const ProfileUI = ({
           </div>
         )}
         {updateUserError && (
-          <p className={`${styles.error} pt-5 text text_type_main-default`}>
+          <p
+            className={clsx(
+              commonStyles.error,
+              'pt-5',
+              'text',
+              'text_type_main-default'
+            )}
+          >
             {updateUserError}
           </p>
         )}

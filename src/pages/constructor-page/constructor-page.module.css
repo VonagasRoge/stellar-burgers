@@ -19,3 +19,8 @@
   height: 100%;
   overflow: hidden;
 }
+
+.message {
+  margin: 120px auto;
+  text-align: center;
+}

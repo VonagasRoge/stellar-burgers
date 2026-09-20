@@ -1,26 +1,34 @@
+import { selectIngredients } from '@selectors/ingredientsSelectors';
+import {
+  selectCurrentOrder,
+  selectCurrentOrderLoading,
+} from '@selectors/ordersSelectors';
+import { clearCurrentOrder, fetchOrderByNumber } from '@slices/ordersSlice';
 import { Preloader, OrderInfoUI } from '@ui';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+
+import { useDispatch, useSelector } from '@services/store';
 
 import type { TIngredient } from '@utils-types';
 
 export const OrderInfo = (): React.JSX.Element => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0,
-  };
+  const { number } = useParams();
+  const dispatch = useDispatch();
+  const orderData = useSelector(selectCurrentOrder);
+  const isLoading = useSelector(selectCurrentOrderLoading);
+  const ingredients = useSelector(selectIngredients);
 
-  const ingredients: TIngredient[] = [];
+  useEffect(() => {
+    if (number) {
+      void dispatch(fetchOrderByNumber(Number(number)));
+    }
 
-  /**
-   * использование useMemo не обязательно
-   */
-  /* Готовим данные для отображения */
+    return (): void => {
+      dispatch(clearCurrentOrder());
+    };
+  }, [dispatch, number]);
+
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -60,7 +68,7 @@ export const OrderInfo = (): React.JSX.Element => {
     };
   }, [orderData, ingredients]);
 
-  if (!orderInfo) {
+  if (isLoading || !orderInfo) {
     return <Preloader />;
   }
 
