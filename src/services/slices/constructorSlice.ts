@@ -8,13 +8,6 @@ import type {
   TOrder,
 } from '@utils-types';
 
-const createConstructorIngredient = (
-  ingredient: TIngredient
-): TConstructorIngredient => ({
-  ...ingredient,
-  id: crypto.randomUUID(),
-});
-
 export const createOrder = createAsyncThunk(
   'constructor/createOrder',
   async (_, { getState, rejectWithValue }) => {
@@ -53,15 +46,21 @@ export const constructorSlice = createSlice({
   name: 'constructor',
   initialState,
   reducers: {
-    addIngredient: (state, action: PayloadAction<TIngredient>) => {
-      const ingredient = action.payload;
+    addIngredient: {
 
-      if (ingredient.type === 'bun') {
-        state.constructorItems.bun = createConstructorIngredient(ingredient);
-        return;
-      }
+      prepare: (ingredient: TIngredient) => ({
+        payload: { ...ingredient, id: crypto.randomUUID() },
+      }),
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        const ingredient = action.payload;
 
-      state.constructorItems.ingredients.push(createConstructorIngredient(ingredient));
+        if (ingredient.type === 'bun') {
+          state.constructorItems.bun = ingredient;
+          return;
+        }
+
+        state.constructorItems.ingredients.push(ingredient);
+      },
     },
     removeIngredient: (state, action: PayloadAction<number>) => {
       state.constructorItems.ingredients.splice(action.payload, 1);
