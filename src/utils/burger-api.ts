@@ -4,6 +4,15 @@ import type { TIngredient, TOrder, TUser } from './types';
 
 const URL = process.env.BURGER_API_URL;
 
+/* WebSocket-эндпоинты живут рядом с REST API: из базового URL
+   https://.../api получается wss://.../orders/all и wss://.../orders?token=... */
+const WS_URL = (URL ?? '').replace(/^http/, 'ws').replace(/\/api$/, '');
+
+export const allOrdersWsUrl = (): string => `${WS_URL}/orders/all`;
+
+export const userOrdersWsUrl = (token: string): string =>
+  `${WS_URL}/orders?token=${token}`;
+
 const checkResponse = <T>(res: Response): Promise<T> =>
   res.ok ? res.json() : res.json().then((err) => Promise.reject(toApiError(err)));
 
