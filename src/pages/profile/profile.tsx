@@ -44,9 +44,6 @@ export const Profile = (): React.JSX.Element => {
     )
       .unwrap()
       .then(() => {
-
-
-
         setFormValue((prevState) => ({
           ...prevState,
           password: '',

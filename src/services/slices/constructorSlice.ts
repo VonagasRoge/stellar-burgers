@@ -47,7 +47,6 @@ export const constructorSlice = createSlice({
   initialState,
   reducers: {
     addIngredient: {
-
       prepare: (ingredient: TIngredient) => ({
         payload: { ...ingredient, id: crypto.randomUUID() },
       }),
