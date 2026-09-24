@@ -18,11 +18,9 @@ export const LoginUI = ({
   password,
   setPassword,
 }: LoginUIProps): React.JSX.Element => {
-
   const { state } = useLocation() as { state: unknown };
 
   return (
-
     <main className={styles.container}>
       <div className={clsx('pt-6', styles.wrapCenter)}>
         <h3 className="pb-6 text text_type_main-medium">Вход</h3>

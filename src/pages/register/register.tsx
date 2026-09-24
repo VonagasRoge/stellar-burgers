@@ -31,8 +31,6 @@ export const Register = (): React.JSX.Element => {
     void dispatch(registerUser({ name: userName, email, password }))
       .unwrap()
       .then(() => {
-
-
         void navigate(from, { replace: true });
       })
       .catch(() => undefined);

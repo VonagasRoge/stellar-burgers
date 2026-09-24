@@ -36,3 +36,45 @@
 		'@utils': path.resolve(__dirname, './src/utils'),
 	},
 ```
+
+## Тесты
+
+В проекте два вида тестов: юнит-тесты редьюсеров на Jest и интеграционные (e2e) тесты интерфейса на Playwright.
+
+### Юнит-тесты (Jest + ts-jest)
+
+- Стек: [Jest](https://jestjs.io/) с преобразованием TypeScript через `ts-jest`.
+- Расположение: рядом с исходниками, в `src/services/slices/__tests__/`.
+- Покрытие: `constructorSlice` и `ingredientsSlice` — 100% строк, отчёт пишется в `coverage/`.
+
+Запуск:
+
+```
+npm run test        
+```
+
+Что проверяется:
+
+- редьюсер как чистая функция (неизвестный экшен, начальное состояние);
+- простые экшены: `addIngredient`, `removeIngredient`, `moveIngredient`, `clearConstructor`, `clearOrderModal`;
+- асинхронный thunk `createOrder`: отклонение без булки, payload запроса `[bun, ...ingredients, bun]`, успех и ошибка (API мокается через `jest.mock('@api')`).
+
+### Интеграционные тесты (Playwright)
+
+- Стек: [@playwright/test](https://playwright.dev/)
+- Расположение: `tests/`, файлы со спецификацией имеют расширение `.pl.tsx` (настроено `testMatch` в `playwright.config.ts`).
+- Сетевые запросы перехватываются HAR-записями из `tests/hars/` (`ingredients.har`, `user.har`, `orders.har`) — тесты не зависят от живого API.
+- Перед прогоном Playwright сам поднимает dev-сервер (`npm run start`, порт 4000); если сервер уже запущен, он переиспользуется.
+npm
+Запуск:
+
+```
+npm run test:e2e    # то же, что npm run e2e
+npm run e2e:ui      # интерактивный режим Playwright UI
+```
+
+Что проверяется (`tests/constructor.pl.tsx`, 14 тестов):
+
+- добавление булок, начинок и соусов в конструктор и пересчёт итоговой цены;
+- модальное окно ингредиента: открытие по клику, данные именно кликнутого ингредиента, закрытие крестиком и кликом по оверлею;
+- оформление заказа: модалка с номером заказа, очистка конструктора после заказа, состав payload и заголовок `authorization`.

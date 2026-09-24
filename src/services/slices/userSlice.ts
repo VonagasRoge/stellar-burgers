@@ -14,7 +14,6 @@ import { deleteCookie, setCookie } from '@utils/cookie';
 
 import type { TUser } from '@utils-types';
 
-
 const clearStoredTokens = (): void => {
   localStorage.removeItem('refreshToken');
   deleteCookie('accessToken');
@@ -33,8 +32,6 @@ export const checkUserAuth = createAsyncThunk(
       return data.user;
     } catch (firstError) {
       try {
-
-
         await refreshToken();
 
         const retry = await getUserApi();
@@ -45,7 +42,6 @@ export const checkUserAuth = createAsyncThunk(
 
         return retry.user;
       } catch {
-
         clearStoredTokens();
         throw firstError instanceof Error
           ? firstError
@@ -83,7 +79,6 @@ export const logoutUser = createAsyncThunk('user/logout', async (): Promise<void
   try {
     await logoutApi();
   } finally {
-
     clearStoredTokens();
   }
 });
@@ -138,8 +133,6 @@ export const userSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(checkUserAuth.rejected, (state) => {
-
-
         state.loading = false;
         state.isAuthChecked = true;
         state.user = null;
